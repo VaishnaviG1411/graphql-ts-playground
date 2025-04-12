@@ -1,6 +1,19 @@
 import { ApolloServer, gql } from 'apollo-server';
 
-// Types
+// 📌 TypeScript interface for Book
+interface Book {
+  title: string;
+  author: string;
+  pages: number;
+}
+
+// 📚 Sample data using the type
+const books: Book[] = [
+  { title: '1984', author: 'George Orwell', pages: 328 },
+  { title: 'Atomic Habits', author: 'James Clear', pages: 320 }
+];
+
+// 🧠 Define GraphQL schema
 const typeDefs = gql`
   type Book {
     title: String
@@ -13,20 +26,14 @@ const typeDefs = gql`
   }
 `;
 
-// Dummy data
-const books = [
-  { title: '1984', author: 'George Orwell', pages: 328 },
-  { title: 'Atomic Habits', author: 'James Clear', pages: 320 }
-];
-
-// Resolvers
+// 🧠 Define resolver types using TS
 const resolvers = {
   Query: {
-    books: () => books
+    books: (): Book[] => books
   }
 };
 
-// Server
+// 🚀 Start Apollo Server
 const server = new ApolloServer({ typeDefs, resolvers });
 
 server.listen().then(({ url }) => {
