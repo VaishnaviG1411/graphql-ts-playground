@@ -1,22 +1,37 @@
 import { ApolloServer, gql } from 'apollo-server';
 import { v4 as uuidv4 } from 'uuid';
 
-// 📌 Book interface with Genre
+// 📌 Book interface with Genre and Status enums
 interface Book {
   id: string;
   title: string;
   author: string;
   pages: number;
   genre: 'FICTION' | 'SELF_HELP' | 'SCI_FI' | 'FANTASY';
+  status: 'AVAILABLE' | 'CHECKED_OUT';
 }
 
-// 📚 Sample data
+// 📚 Sample data with status field
 let books: Book[] = [
-  { id: "1", title: '1984', author: 'George Orwell', pages: 328, genre: 'FICTION' },
-  { id: "2", title: 'Atomic Habits', author: 'James Clear', pages: 320, genre: 'SELF_HELP' },
+  {
+    id: "1",
+    title: '1984',
+    author: 'George Orwell',
+    pages: 328,
+    genre: 'FICTION',
+    status: 'AVAILABLE'
+  },
+  {
+    id: "2",
+    title: 'Atomic Habits',
+    author: 'James Clear',
+    pages: 320,
+    genre: 'SELF_HELP',
+    status: 'CHECKED_OUT'
+  }
 ];
 
-// 🧠 GraphQL Schema with enum, input type, and mutation
+// 🧠 Schema with two enums + mutation input
 const typeDefs = gql`
   enum Genre {
     FICTION
@@ -25,12 +40,18 @@ const typeDefs = gql`
     FANTASY
   }
 
+  enum BookStatus {
+    AVAILABLE
+    CHECKED_OUT
+  }
+
   type Book {
     id: ID!
     title: String!
     author: String!
     pages: Int!
     genre: Genre!
+    status: BookStatus!
   }
 
   input NewBookInput {
@@ -38,6 +59,7 @@ const typeDefs = gql`
     author: String!
     pages: Int!
     genre: Genre!
+    status: BookStatus!
   }
 
   type Query {
@@ -51,7 +73,7 @@ const typeDefs = gql`
   }
 `;
 
-// 🧠 Resolvers with Mutation and Validation
+// 🧠 Resolvers with validation and new status field
 const resolvers = {
   Query: {
     books: (): Book[] => books,
@@ -62,14 +84,12 @@ const resolvers = {
   },
   Mutation: {
     addBook: (_: unknown, args: { input: Omit<Book, 'id'> }): Book => {
-      const { title, author, pages, genre } = args.input;
+      const { title, author, pages, genre, status } = args.input;
 
-      // 🛑 Validation: All fields are required
-      if (!title || !author || !pages || !genre) {
+      if (!title || !author || !pages || !genre || !status) {
         throw new Error("All fields are required.");
       }
 
-      // ❌ Check for duplicate
       const duplicate = books.find(
         b => b.title === title && b.author === author
       );
@@ -77,13 +97,13 @@ const resolvers = {
         throw new Error("Book already exists.");
       }
 
-      // ✅ Create new book
       const newBook: Book = {
         id: uuidv4(),
         title,
         author,
         pages,
-        genre
+        genre,
+        status
       };
 
       books.push(newBook);
